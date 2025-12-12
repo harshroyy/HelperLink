@@ -19,4 +19,8 @@ router.put('/:id/accept', protect, requestController.acceptRequest);
 // Uses 'protect' because you must be logged in to decline
 router.put('/:id/decline', protect, requestController.declineRequest);
 
+// DELETE /api/requests/:id
+// Uses 'protect' because you must be logged in to delete
+router.delete('/:id', protect, requestController.deleteRequest);
+
 module.exports = router;

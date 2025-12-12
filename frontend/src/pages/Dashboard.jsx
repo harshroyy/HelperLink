@@ -73,9 +73,20 @@ const Dashboard = () => {
     }
   };
 
+  const handleDeleteRequest = async (requestId) => {
+    if (!window.confirm("Are you sure you want to cancel this request?")) return;
+    try {
+      await api.delete(`/requests/${requestId}`);
+      // Optimistic UI Update or Reload
+      setMyRequests(prev => prev.filter(req => req._id !== requestId));
+    } catch (err) {
+      alert("Failed to delete request");
+    }
+  };
+
   // --- NEW HELPER FUNCTION FOR STATUS BADGES ---
   const getStatusBadge = (status) => {
-    switch(status) {
+    switch (status) {
       case 'accepted':
         return (
           <span className="flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs font-bold border border-green-100">
@@ -199,16 +210,24 @@ const Dashboard = () => {
                 {myRequests.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {myRequests.map((req) => (
-                      <div key={req._id} className="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 p-6 flex flex-col h-full relative overflow-hidden group">
-                        
+                      <div key={req._id} className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 p-6 flex flex-col h-full relative overflow-hidden group">
+
                         {/* Status Stripe */}
-                        <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${
-                          req.status === 'accepted' ? 'bg-green-500' : 
+                        <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${req.status === 'accepted' ? 'bg-green-500' :
                           req.status === 'declined' ? 'bg-red-400' : 'bg-yellow-400'
-                        }`}></div>
+                          }`}></div>
+
+                        {/* Delete Button (Absolute Top Right) */}
+                        <button
+                          onClick={() => handleDeleteRequest(req._id)}
+                          className="absolute top-4 right-4 text-gray-300 hover:text-red-500 transition-colors p-1"
+                          title="Cancel Request"
+                        >
+                          <XCircle size={20} />
+                        </button>
 
                         {/* Top: Helper Info */}
-                        <div className="flex justify-between items-start mb-4 pl-3">
+                        <div className="flex justify-between items-start mb-4 pl-3 pr-8">
                           <div className="flex items-center gap-3">
                             {/* Helper Avatar Circle */}
                             <div className="w-12 h-12 rounded-full border-2 border-white shadow-sm overflow-hidden bg-gray-100">
@@ -220,14 +239,14 @@ const Dashboard = () => {
                                 </div>
                               )}
                             </div>
-                            
+
                             {/* Helper Name */}
                             <div>
                               <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-0.5">Request to</p>
                               <h3 className="font-bold text-gray-900 text-lg leading-none">{req.helperId?.name || 'Unknown Helper'}</h3>
                             </div>
                           </div>
-                          
+
                           {/* Status Badge Icon */}
                           {getStatusBadge(req.status)}
                         </div>
@@ -246,7 +265,7 @@ const Dashboard = () => {
                         {/* Footer Action */}
                         <div className="pl-3 mt-auto">
                           {req.status === 'accepted' ? (
-                            <button 
+                            <button
                               onClick={() => navigate(`/chat/${req.matchId}`)}
                               className="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg shadow-green-200 transition-all flex items-center justify-center gap-2"
                             >

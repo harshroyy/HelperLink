@@ -9,9 +9,9 @@ const User = require('../models/User');
 exports.createRequest = async (req, res) => {
   try {
     const { helperId, category, reason, details } = req.body;
-    
+
     // req.user.id comes from the 'protect' middleware
-    const receiverId = req.user.id; 
+    const receiverId = req.user.id;
 
     // 1. Basic validation
     if (helperId === receiverId) {
@@ -148,5 +148,28 @@ exports.getMyRequests = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).send('Server Error');
+  }
+};
+
+// @desc    Cancel/Delete a request
+// @route   DELETE /api/requests/:id
+exports.deleteRequest = async (req, res) => {
+  try {
+    const request = await HelpRequest.findById(req.params.id);
+
+    if (!request) {
+      return res.status(404).json({ message: 'Request not found' });
+    }
+
+    // Ensure only the person who made the request can delete it
+    if (request.receiverId.toString() !== req.user.id) {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
+
+    await request.deleteOne();
+    res.json({ message: 'Request removed' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error' });
   }
 };
