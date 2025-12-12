@@ -26,52 +26,19 @@ const Home = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-white font-sans text-gray-900">
 
       {/* --- MOUNT MODALS --- */}
-      <LoginModal 
-        isOpen={isLoginOpen} 
-        onClose={() => setIsLoginOpen(false)} 
-        onSwitchToRegister={switchToRegister} 
+      <LoginModal
+        isOpen={isLoginOpen}
+        onClose={() => setIsLoginOpen(false)}
+        onSwitchToRegister={switchToRegister}
       />
-      
-      <RegisterModal 
-        isOpen={isRegisterOpen} 
-        onClose={() => setIsRegisterOpen(false)} 
+
+      <RegisterModal
+        isOpen={isRegisterOpen}
+        onClose={() => setIsRegisterOpen(false)}
         onSwitchToLogin={switchToLogin}
       />
 
-      {/* --- NAVBAR --- */}
-      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-white/50 border-b border-white/20">
-        <div className="max-w-[1440px] mx-auto px-6 md:px-12 py-4">
-          <div className="flex items-center justify-between">
-            {/* Logo Section */}
-            <div className="flex items-center gap-3">
-              <div className="h-12 w-auto flex items-center justify-center">
-                <img
-                  src={logo2}
-                  alt="Reach Logo"
-                  className="h-full w-auto object-contain"
-                />
-              </div>
-            </div>
 
-            {/* Auth Buttons */}
-            <div className="flex items-center gap-3">
-              <button 
-                onClick={() => setIsLoginOpen(true)}
-                className="hidden md:block px-6 py-2 rounded-full text-gray-600 hover:text-blue-600 hover:bg-white/50 transition-all duration-200 font-medium"
-              >
-                Login
-              </button>
-              
-              <button 
-                onClick={() => setIsRegisterOpen(true)} // <--- FIXED: Button instead of Link
-                className="px-6 py-2 rounded-full bg-[#747def] text-white hover:bg-[#5e63c2] transition-all duration-200 shadow-lg shadow-blue-600/25 font-medium"
-              >
-                Register
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
 
       {/* --- HERO SECTION --- */}
       <section className="pt-32 pb-20 px-6 md:px-12 relative overflow-hidden">

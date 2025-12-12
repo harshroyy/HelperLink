@@ -1,49 +1,44 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
-  name: { 
-    type: String, 
-    required: true, 
-    trim: true 
-  },
-  email: { 
-    type: String, 
-    required: true, 
-    unique: true, 
-    lowercase: true,
-    trim: true 
-  },
-  passwordHash: { 
-    type: String, 
-    required: true,
-    select: false // Ensures password isn't sent to frontend by default
-  },
-  role: { 
-    type: String, 
-    enum: ['receiver', 'helper', 'admin'], 
-    default: 'receiver' 
-  },
+  name: { type: String, required: true, trim: true },
+  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+  passwordHash: { type: String, required: true },
+  role: { type: String, enum: ['receiver', 'helper', 'admin'], default: 'receiver' },
   
-  // Common Profile Info
-  bio: { type: String, maxlength: 500 },
+  // --- Common Profile Info ---
   city: { type: String, required: true },
-  profileImage: { type: String }, // URL from Cloudinary/S3
+  bio: { type: String, maxlength: 500, default: '' },
+  profileImage: { type: String, default: '' }, 
+  
+  // NEW: Added for the Profile UI Header
+  headline: { type: String, maxlength: 60, default: '' }, 
+  socials: {
+    github: { type: String, default: '' },
+    linkedin: { type: String, default: '' },
+    twitter: { type: String, default: '' }
+  },
 
-  // Helper Specific Data (Only used if role is 'helper')
+  // --- Role Specific Data ---
   helperProfile: {
-    skills: [{ type: String }],    // e.g. ["Coding", "Math"]
-    resources: [{ type: String }], // e.g. ["Books", "Money"]
+    skills: [{ type: String }],    
+    resources: [{ type: String }], 
     isAvailable: { type: Boolean, default: true }
   },
 
-  // Receiver Specific Data (Only used if role is 'receiver')
   receiverProfile: {
-    needs: [{ type: String }] // e.g. ["Education", "Food"]
+    needs: [{ type: String }] 
   },
 
   isVerified: { type: Boolean, default: false },
 }, { 
   timestamps: true 
 });
+
+// Match Password Method
+userSchema.methods.matchPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.passwordHash);
+};
 
 module.exports = mongoose.model('User', userSchema);
