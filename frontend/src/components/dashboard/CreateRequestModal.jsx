@@ -1,123 +1,161 @@
 import { useState } from 'react';
+import { X, Send, Loader2, MessageSquare, Sparkles } from 'lucide-react';
 import api from '../../services/api';
 
-const CreateRequestModal = ({ helper, isOpen, onClose }) => {
-  const [loading, setLoading] = useState(false);
+const CreateRequestModal = ({ isOpen, onClose, helper }) => {
   const [formData, setFormData] = useState({
-    category: 'Education', // Default
-    reason: '',
+    category: '',
     details: ''
   });
+  const [loading, setLoading] = useState(false);
+
+  // Quick tags
+  const quickTags = ["Mentorship", "Code Review", "Career Advice", "Study Partner", "Emotional Support"];
 
   if (!isOpen) return null;
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    if (!formData.category || !formData.details) return;
 
+    setLoading(true);
     try {
-      // Send data to backend
       await api.post('/requests', {
         helperId: helper._id,
-        ...formData
+
+        // --- THE FIX ---
+        // The backend requires 'category'. 
+        // We send the selected tag (e.g., "Mentorship") as both category and reason.
+        category: formData.category,
+        reason: formData.category,
+
+        details: formData.details
       });
 
       alert('Request sent successfully!');
-      onClose(); // Close modal
+      onClose();
     } catch (err) {
-      console.error(err);
-      alert(err.response?.data?.msg || 'Failed to send request');
+      console.error(err); // Log the full error to console for debugging
+      alert(err.response?.data?.message || err.response?.data?.msg || 'Failed to send request');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    // 1. Overlay (Dark background)
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
-      
-      {/* 2. Modal Box */}
-      <div className="relative mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
-        
-        {/* Header */}
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold text-gray-900">Ask {helper.name} for Help</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 font-bold text-xl">&times;</button>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+        onClick={onClose}
+      ></div>
+
+      {/* Modal Card */}
+      <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all scale-100 opacity-100">
+
+        {/* --- HEADER: HELPER INFO --- */}
+        <div className="bg-gradient-to-r from-[#181E4B] to-[#2A3468] p-6 text-white relative overflow-hidden">
+
+          {/* Decorative Circles (z-0 to stay behind) */}
+          <div className="absolute top-[-20px] right-[-20px] w-24 h-24 bg-white/10 rounded-full blur-xl z-0"></div>
+          <div className="absolute bottom-[-20px] left-[-20px] w-32 h-32 bg-[#747def]/20 rounded-full blur-xl z-0"></div>
+
+          {/* --- CLOSE BUTTON (Fixed with z-50) --- */}
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute top-4 right-4 z-50 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors cursor-pointer"
+          >
+            <X size={20} />
+          </button>
+
+          <div className="flex items-center gap-4 relative z-10">
+            {/* Helper Avatar */}
+            <div className="w-16 h-16 rounded-full border-2 border-white/30 p-1">
+              <div className="w-full h-full rounded-full bg-white overflow-hidden flex items-center justify-center text-[#181E4B] font-bold text-xl">
+                {helper.profileImage ? (
+                  <img src={helper.profileImage} alt={helper.name} className="w-full h-full object-cover" />
+                ) : (
+                  helper.name.charAt(0).toUpperCase()
+                )}
+              </div>
+            </div>
+
+            <div>
+              <p className="text-blue-200 text-xs font-bold uppercase tracking-wider mb-1">Reach out to</p>
+              <h2 className="text-2xl font-bold font-serif leading-none">{helper.name}</h2>
+            </div>
+          </div>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          
-          {/* Category */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Category</label>
-            <select
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="Education">Education / Mentoring</option>
-              <option value="Financial">Financial Support</option>
-              <option value="Food">Food / Groceries</option>
-              <option value="Career">Career Guidance</option>
-              <option value="Emotional">Emotional Support</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
+        {/* --- BODY: FORM --- */}
+        <div className="p-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
 
-          {/* Reason (Short Title) */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Short Reason (Title)</label>
-            <input
-              type="text"
-              name="reason"
-              required
-              maxLength="50"
-              placeholder="e.g. Need help with React project"
-              value={formData.reason}
-              onChange={handleChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
+            {/* 1. Quick Select Reason */}
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                <Sparkles size={16} className="text-[#747def]" />
+                What do you need help with?
+              </label>
 
-          {/* Details (Long Story) */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Detailed Explanation</label>
-            <textarea
-              name="details"
-              rows="4"
-              required
-              placeholder="Explain your situation in detail..."
-              value={formData.details}
-              onChange={handleChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
-            ></textarea>
-          </div>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {quickTags.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, category: tag })}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${formData.category === tag
+                        ? 'bg-[#747def] text-white border-[#747def] shadow-md transform scale-105'
+                        : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-[#747def] hover:text-[#747def]'
+                      }`}
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
 
-          {/* Actions */}
-          <div className="flex justify-end gap-3 mt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300"
-            >
-              Cancel
-            </button>
+              {/* Custom Input fallback */}
+              <input
+                type="text"
+                placeholder="Or type your own reason..."
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#747def]/20 focus:border-[#747def] text-sm transition-all"
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              />
+            </div>
+
+            {/* 2. Details */}
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <MessageSquare size={16} className="text-[#747def]" />
+                Message details
+              </label>
+              <textarea
+                rows="4"
+                placeholder={`Hi ${helper.name.split(' ')[0]}, I saw that you are good at...`}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#747def]/20 focus:border-[#747def] text-sm transition-all resize-none"
+                value={formData.details}
+                onChange={(e) => setFormData({ ...formData, details: e.target.value })}
+              ></textarea>
+              <p className="text-xs text-gray-400 mt-2 text-right">
+                Be specific so they know how to help!
+              </p>
+            </div>
+
+            {/* Actions */}
             <button
               type="submit"
-              disabled={loading}
-              className={`text-white px-4 py-2 rounded-md ${loading ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'}`}
+              disabled={loading || !formData.category || !formData.details}
+              className="w-full py-4 bg-[#181E4B] hover:bg-[#747def] text-white rounded-xl font-bold text-lg shadow-xl shadow-blue-900/10 hover:shadow-blue-900/20 hover:scale-[1.01] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
+              {loading ? <Loader2 size={20} className="animate-spin" /> : <Send size={18} />}
               {loading ? 'Sending...' : 'Send Request'}
             </button>
-          </div>
 
-        </form>
+          </form>
+        </div>
+
       </div>
     </div>
   );

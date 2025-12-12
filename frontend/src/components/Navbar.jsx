@@ -81,9 +81,9 @@ const Navbar = () => {
                   {/* Name Link */}
                   <Link 
                     to="/profile" 
-                    className="text-gray-900 font-bold hover:text-[#747def] transition-colors hidden sm:block"
+                    className="text-[#747def] font-bold hover:text-[#747def] transition-colors hidden sm:block"
                   >
-                    Hi, {user.name.split(' ')[0]}
+                  {user.name.split(' ')[0]}
                   </Link>
 
                   {/* --- NEW: PROFILE CIRCLE --- */}
